@@ -16,6 +16,13 @@ string config_path = string(appdata) + "\\todo\\config.txt";
 
 void SetCustomPath(string path) {
     save_file_name = path;
+
+    ofstream config_file(config_path);
+    config_file << save_file_name;
+    config_file.close();
+
+    ofstream file(save_file_name);
+    file.close();
 }
 
 void DeleteLine(int line) {
@@ -118,20 +125,21 @@ int main(int argc, char* argv[]) {
         file.close();
     }
 
-    //Check if there is a todos.txt path. If not use the predefined one.
+    //Check if there is a todos.txt path.
     ifstream config_file(config_path);
     getline(config_file, save_file_name);
     config_file.close();
 
+    //If there is no todos.txt path then create the file in appdata todo folder and update config.txt.^^
     if(save_file_name.empty()) {
+        save_file_name = string(appdata) + "\\todo\\todos.txt";
+
         ofstream config_file(config_path);
-        config_file << string(appdata) + "\\todo\\todos.txt";
+        config_file << save_file_name;
         config_file.close();
 
-        ofstream file(string(appdata) + "\\todo\\todos.txt");
+        ofstream file(save_file_name);
         file.close();
-        
-        save_file_name = string(appdata) + "\\todo\\todos.txt";
     }
 
     if(argc >= 2) {
