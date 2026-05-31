@@ -1,13 +1,22 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cstring>
+#include <filesystem>
 
 using namespace std;
 
 const string version = "0.1";
 
 char actions[2] = {'C', 'D'};
-const string save_file_name = "D:\\Programmier Projekte\\C++\\TodoApp\\todos.txt";
+string save_file_name;
+
+const char* appdata = getenv("APPDATA");
+string config_path = string(appdata) + "\\todo\\config.txt";
+
+void SetCustomPath(string path) {
+    save_file_name = path;
+}
 
 void DeleteLine(int line) {
     string todo;
@@ -85,7 +94,8 @@ void Help() {
     cout << "Valid Commands:" << endl
          << "-create [name]" << endl
          << "-delete [id]" << endl
-         << "-list" << endl;
+         << "-list" << endl
+         << "-path [path]" << endl;
 }
 
 void PresentProgram() {
@@ -98,6 +108,32 @@ void PresentProgram() {
 
 int main(int argc, char* argv[]) {
     string action;
+
+    //Check if config path and file exist. If not create them
+    if(!filesystem::exists(string(appdata) + "\\todo")) {
+        filesystem::create_directories(string(appdata) + "/todo");
+    }
+    if(!filesystem::exists(config_path)) {
+        ofstream file(config_path);
+        file.close();
+    }
+
+    //Check if there is a todos.txt path. If not use the predefined one.
+    ifstream config_file(config_path);
+    getline(config_file, save_file_name);
+    config_file.close();
+
+    if(save_file_name.empty()) {
+        ofstream config_file(config_path);
+        config_file << string(appdata) + "\\todo\\todos.txt";
+        config_file.close();
+
+        ofstream file(string(appdata) + "\\todo\\todos.txt");
+        file.close();
+        
+        save_file_name = string(appdata) + "\\todo\\todos.txt";
+    }
+
     if(argc >= 2) {
         action = argv[1];
 
@@ -123,6 +159,33 @@ int main(int argc, char* argv[]) {
 
         if(action == "-list") {
             ListTodos();  
+        }
+
+        if(action == "-path") {
+            if(argc == 3) {
+                string path = argv[2];
+
+               const char* arr = path.c_str(); 
+
+               char last_char {};
+               size_t len = strlen(arr);
+               for(int i = 0; i < len; i++) {
+                    if(arr[i] == '\\') {
+                        if(arr[i + 1] != '\\' && arr[i - 1] != '\\') {
+                            cout << "Error at " << i << "   ---->   '" << arr[i - 2] << arr[i - 1] << arr[i] << arr[i + 1] << arr[i + 2] << "'" << endl 
+                                 << "needs double backslash or singular slash" <<endl;
+                            return 0;
+                        }
+                    }
+                    last_char = arr[i];
+               }
+
+                SetCustomPath(path);
+            }
+            else {
+                cout << save_file_name << endl;
+                Help();
+            } 
         }
     }
     else {
